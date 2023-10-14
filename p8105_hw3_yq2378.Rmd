@@ -47,3 +47,41 @@ The table shows the mean hour of the day at which Pink Lady Apples and Coffee Ic
 ```{r}
 instacart %>% filter(product_name %in% c("Pink Lady Apples","Coffee Ice Cream")) %>% group_by(order_dow,product_name) %>% summarise(mean_order_hour_of_day = round(mean(order_hour_of_day),2)) %>% pivot_wider(names_from = order_dow,values_from = mean_order_hour_of_day) %>% rename(Sun = "0", Mon = "1", Tue = "2", Wed = "3", Thu = "4",Fri = "5", Sat = "6")
 ```
+
+
+
+# Problem 2
+
+
+Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
+
+```{r}
+data("brfss_smart2010")
+brfss_smart2010 = brfss_smart2010 %>% janitor::clean_names() %>% filter(topic == 'Overall Health' & response %in% c("Poor", "Excellent")) %>% 
+  mutate(response = factor(response, levels = c("Poor","Excellent"), ordered = TRUE))
+```
+
+In 2002, 6 states, including PA, MA, NJ, CT, FL, NC were observed at 7 or more locations. In 2010, 14 states were left, including FL, NJ, TX, CA, MD, NC, NE,WA, MA,NY,OH, Co, PA, SC were observed at 7 or more locations. Details were listed below.
+```{r}
+brfss_smart2010 %>% filter(year == 2002) %>% group_by(locationabbr) %>% summarise( cnt = n_distinct(locationdesc)) %>% arrange(desc(cnt))  %>% filter(cnt >= 7)
+
+brfss_smart2010 %>% filter(year == 2010) %>% group_by(locationabbr) %>% summarise( cnt = n_distinct(locationdesc)) %>% arrange(desc(cnt))  %>% filter(cnt >= 7)
+```
+The dataset `brfss_smart_excellent` contains 443 observations of 3 variables. From 2002 to 2010, mean data value across 51 states were presented by the "spaghetti" plot. Generally the lines were in a decreasing trend.
+
+Distributions of `data_value` in different year and of different position is shown below.Clearly, for both 2006 and 2010, the Poor has lower data value compared to the Excellence. The max value of the poor never exceeds the Q1 of the Excellence. Rough little difference could be detetced between 2006 and 2010.
+
+```{r}
+brfss_smart_excellent = brfss_smart2010 %>% filter(response == "Excellent") %>% 
+  group_by(year,locationabbr) %>% summarise(mean_data_value = mean(data_value))
+
+brfss_smart_excellent %>% ggplot(aes(x = year, y = mean_data_value,group = locationabbr,col = locationabbr)) + 
+  geom_line() + theme_pubr(legend = "right") + ylab("Mean Data Value") + xlab("Year")
+
+
+brfss_smart2010 %>% filter(year %in% c(2006,2010)) %>%
+  ggplot(aes(x = response, y = data_value))+ geom_boxplot()+ facet_grid(cols = vars(year)) + theme_pubr() +
+  xlab("Response") + ylab("Data Value")
+
+```
+
