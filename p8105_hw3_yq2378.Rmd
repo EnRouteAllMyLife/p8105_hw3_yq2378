@@ -55,14 +55,14 @@ instacart %>% filter(product_name %in% c("Pink Lady Apples","Coffee Ice Cream"))
 
 Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
 
-```{r}
+```{r load data p2}
 data("brfss_smart2010")
 brfss_smart2010 = brfss_smart2010 %>% janitor::clean_names() %>% filter(topic == 'Overall Health' & response %in% c("Poor", "Excellent")) %>% 
   mutate(response = factor(response, levels = c("Poor","Excellent"), ordered = TRUE))
 ```
 
 In 2002, 6 states, including PA, MA, NJ, CT, FL, NC were observed at 7 or more locations. In 2010, 14 states were left, including FL, NJ, TX, CA, MD, NC, NE,WA, MA,NY,OH, Co, PA, SC were observed at 7 or more locations. Details were listed below.
-```{r}
+```{r states and location}
 brfss_smart2010 %>% filter(year == 2002) %>% group_by(locationabbr) %>% summarise( cnt = n_distinct(locationdesc)) %>% arrange(desc(cnt))  %>% filter(cnt >= 7)
 
 brfss_smart2010 %>% filter(year == 2010) %>% group_by(locationabbr) %>% summarise( cnt = n_distinct(locationdesc)) %>% arrange(desc(cnt))  %>% filter(cnt >= 7)
@@ -71,7 +71,7 @@ The dataset `brfss_smart_excellent` contains 443 observations of 3 variables. Fr
 
 Distributions of `data_value` in different year and of different position is shown below.Clearly, for both 2006 and 2010, the Poor has lower data value compared to the Excellence. The max value of the poor never exceeds the Q1 of the Excellence. Rough little difference could be detetced between 2006 and 2010.
 
-```{r}
+```{r spaghettieplot}
 brfss_smart_excellent = brfss_smart2010 %>% filter(response == "Excellent") %>% 
   group_by(year,locationabbr) %>% summarise(mean_data_value = mean(data_value))
 
@@ -85,7 +85,7 @@ brfss_smart2010 %>% filter(year %in% c(2006,2010)) %>%
 
 ```
 # Problem3
-```{r}
+```{r load data p3}
 # Load the data from the URL
 demographic_url <- "https://p8105.com/data/nhanes_covar.csv"
 accelerometer_url = "https://p8105.com/data/nhanes_accel.csv"
@@ -94,7 +94,7 @@ acceleromete = read.csv(accelerometer_url)
 ```
 After loading, tidying, merging,filtering and organizing the data sets. The wide dataset, `df_merge` contains 228 observations of 1445 variables. The long dataset, `df_merge_long` contains 328329 observations with 7 variables.
 
-```{r}
+```{r mergedata}
 df_merge = demographic %>% filter(age >= 21) %>% na.omit() %>% 
   mutate(sex = factor(sex, levels = c(1,2), labels = c("male","female")),
          education = factor(education, levels = c(1,2,3), labels = c("Less than high school", "High school equivalent","More than high school"))) %>% left_join(acceleromete, by = "SEQN") %>% janitor::clean_names() 
@@ -108,7 +108,7 @@ Regarding the distribution of age among different sex and education groups, men 
 
 On the other hand, among women, those with "More than high school" education tend to be younger, while the median age for "High school equivalent" is slightly higher than that of "Less than high school." The range for "Less than high school" is narrower compared to the other two categories. Under the same education level, the medians of age are similar for "Less than high school" and "More than high school." However, for "High school equivalent," women clearly have a higher median age.
 
-```{r}
+```{r boxplot}
 df_merge %>% group_by(sex,education) %>% summarise(cnt = n())
 
 df_merge %>% ggplot(aes(x = sex, y = age, fill = education)) + geom_boxplot() + theme_pubr(legend = "right")
@@ -118,14 +118,14 @@ We generated plots to analyze the relationship between total activities and age,
 
 Remarkably, when examining the age range from 20 to 80, we observe that only within the 'less than high school' education group do the trend lines for males and females intersect. This intersection suggests a unique relationship in this particular group, different from the other education level
 
-```{r}
+```{r smooth}
 df_merge = df_merge %>% mutate(total_min = rowSums(select(., starts_with("min"))))
 
 ggplot(df_merge, aes(x = age, y = total_min, col = sex)) + geom_line(alpha = 0.5) + facet_grid(cols = vars(education))+ theme_pubr(legend = "right") + ylab("total activities") + geom_smooth(method = "lm", se = FALSE, linetype = 2, linewidth = 0.3)
 ```
 
 In a 24 hour time, generally speaking, as time increases the 24 hour activity time increases as well. For all three education level and both female and male, independent variable seem to be postively correlated to the dependent variables. As for the slope, there is little difference between gender. But for the More than High School group, the slop is more steep compared to the other two groups. As for the intercept, female has larger intercept than male only in the More than High School group
-```{r}
+```{r geomline}
 
 value = c(colSums(df_merge %>% 
                     filter(sex == "female" & education == "Less than high school") %>% 
