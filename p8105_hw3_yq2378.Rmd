@@ -16,20 +16,20 @@ library(tidyverse)
 library(ggpubr)
 ```
 # Problem 1
-```{r}
+```{r load p1 data}
 data("instacart")
 ```
 The data has `r nrow(instacart)` observations of `r ncol(instacart)` variables, where each row in the dataset is a product from an order. `order_id` is order identifier. `user_id` is customer identifier. `order_dow` is the day of the week on which the order was placed. `order_hour_of_day` is the hour of the day on which the order was placed. `product_name` is the name of the product. `aisle` is the name of the aisle. `department` is the name of the department. The following table gives a more detailed summary of the variables. 
-```{r}
+```{r view data p1}
 skimr::skim(instacart) 
 ```
 There are 134 unique aisles and fresh vegetables is the most items ordered from. Fresh fruits comes the second and packaged vegetables fruit comes the third.
-```{r}
+```{r aisles}
 instacart %>% group_by(aisle) %>% summarise(cnt = n()) %>% arrange(desc(cnt))
 ```
 Grouped the data by aisle and reorder the data by the number of items ordered in each aisle, we could easily see that the number of fresh vegetables and fruits are almost twice as that of packaged vegetables fruits. The least popular items are dry pasta, oil vinegars and butter.
 
-```{r}
+```{r groupby and reorder}
 instacart %>% group_by(aisle) %>% summarise(cnt = n()) %>%  filter(cnt>10000) %>% 
   ggplot(aes(x = reorder(aisle, cnt), y = cnt))+ geom_bar(stat="identity") + coord_flip() +
   geom_text(aes(label = cnt, y = 5000), cex = 2, col ='white')+
@@ -38,13 +38,13 @@ instacart %>% group_by(aisle) %>% summarise(cnt = n()) %>%  filter(cnt>10000) %>
 
 The three most popular items in “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
 were listed below. For packaged vegetables, the hit products are Organic Baby Spinach, Organic Raspberries and Organic Blueberries. For baking ingredients, the hit products are Light Brown Sugar, 	Pure Baking Soda and Cane Sugar. For dog food care, the hit products are 	Snack Sticks Chicken & Rice Recipe Dog Treats, Organix Chicken & Brown Rice Recipe and Small Dog Biscuits
-```{r}
+```{r most popular items}
 instacart %>% filter(aisle %in% c("baking ingredients","dog food care","packaged vegetables fruits")) %>% group_by(aisle,product_name) %>% summarise(cnt = n()) %>% arrange(desc(cnt)) %>% slice(1:3)%>% arrange(desc(cnt))
 ```
 
 The table shows the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week. For Coffee Ice Cream, the mean daily sales of Coffee Ice Cream is approximately 14.20 units. The highest daily sales occurred on Tuesday, with a value of 15.38 units. The lowest daily sales occurred on Friday, with a value of 12.26 units.As for Pink Lady Apples, the mean daily sales of Pink Lady Apples is approximately 12.54 units. The highest daily sales occurred on Wednesday, with a value of 14.25 units. The lowest daily sales occurred on Monday, with a value of 11.36 units
 
-```{r}
+```{r pink&coffee}
 instacart %>% filter(product_name %in% c("Pink Lady Apples","Coffee Ice Cream")) %>% group_by(order_dow,product_name) %>% summarise(mean_order_hour_of_day = round(mean(order_hour_of_day),2)) %>% pivot_wider(names_from = order_dow,values_from = mean_order_hour_of_day) %>% rename(Sun = "0", Mon = "1", Tue = "2", Wed = "3", Thu = "4",Fri = "5", Sat = "6")
 ```
 
